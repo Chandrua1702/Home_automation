@@ -1,5 +1,3 @@
-idf_component_register(
-    SRCS "web_server.cpp"
-    INCLUDE_DIRS "."
-    REQUIRES esp_http_server relay_controller common
-)
+idf_component_register(SRCS "web_server.cpp"
+                       INCLUDE_DIRS "."
+                       REQUIRES relay_controller esp_http_server)

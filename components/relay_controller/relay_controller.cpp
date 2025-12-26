@@ -1,23 +1,24 @@
 #include "relay_controller.hpp"
+#include "../common/app_config.hpp"
 #include "driver/gpio.h"
-#include "esp_log.h"
-
-static const char *TAG = "RELAY";
-
-// Make sure RELAYx_GPIO are defined in app_config.hpp
-static const int RELAY_PINS[4] = {RELAY1_GPIO, RELAY2_GPIO, RELAY3_GPIO, RELAY4_GPIO};
 
 void RelayController::init() {
-    for (int i = 0; i < 4; i++) {
-        gpio_reset_pin(static_cast<gpio_num_t>(RELAY_PINS[i]));
-        gpio_set_direction(static_cast<gpio_num_t>(RELAY_PINS[i]), GPIO_MODE_OUTPUT);
-        gpio_set_level(static_cast<gpio_num_t>(RELAY_PINS[i]), 0); // OFF
-    }
-    ESP_LOGI(TAG, "Relays initialized");
+    gpio_config_t io_conf = {};
+    io_conf.mode = GPIO_MODE_OUTPUT;
+    io_conf.pin_bit_mask = (1ULL<<RELAY1_GPIO) | (1ULL<<RELAY2_GPIO) |
+                           (1ULL<<RELAY3_GPIO) | (1ULL<<RELAY4_GPIO);
+    io_conf.intr_type = GPIO_INTR_DISABLE;
+    gpio_config(&io_conf);
 }
 
 void RelayController::set(int relay_id, bool state) {
-    if (relay_id < 0 || relay_id > 3) return;
-    gpio_set_level(static_cast<gpio_num_t>(RELAY_PINS[relay_id]), state ? 1 : 0);
-    ESP_LOGI(TAG, "Relay %d set to %d", relay_id + 1, state);
+    int gpio = 0;
+    switch(relay_id) {
+        case 1: gpio = RELAY1_GPIO; break;
+        case 2: gpio = RELAY2_GPIO; break;
+        case 3: gpio = RELAY3_GPIO; break;
+        case 4: gpio = RELAY4_GPIO; break;
+        default: return;
+    }
+    gpio_set_level((gpio_num_t)gpio, state ? 1 : 0);
 }

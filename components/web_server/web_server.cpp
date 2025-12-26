@@ -1,130 +1,92 @@
 #include "web_server.hpp"
-#include "relay_controller.hpp"
+#include "relay_controller.hpp" // Include the relay controller header
 #include "esp_log.h"
 #include "esp_http_server.h"
-#include <string>
-#include <sstream>
+#include <cstring>
+#include <cstdlib>
 
 static const char* TAG = "WEB_SERVER";
 
-static esp_err_t relay_post_handler(httpd_req_t *req){
-    char buf[100];
-    int ret = httpd_req_recv(req, buf, sizeof(buf));
-    if (ret <= 0) return ESP_OK;
-
-    buf[ret] = 0;
-    int relay = -1, state = -1;
-
-    sscanf(buf, "relay=%d&state=%d", &relay, &state);
-    if (relay >= 0 && relay <=3 && (state==0 || state==1)) {
-        RelayController::set(relay, state);
-    }
-    httpd_resp_send(req, "OK", HTTPD_RESP_USE_STRLEN);
-    return ESP_OK;
-}
-
-static esp_err_t root_get_handler(httpd_req_t *req){
-    const char* resp = R"rawliteral(
+static const char* HTML_PAGE = R"rawliteral(
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+<meta charset="UTF-8">
+<title>ESP32 Home Automation</title>
 <style>
-html, body {
-    height: 100%;
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: linear-gradient(to bottom, #f0f8ff, #add8e6);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-.container {
-    text-align: center;
-    background-color: rgba(255,255,255,0.9);
-    padding: 40px;
-    border-radius: 20px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.3);
-}
-h1 { color: #333366; margin-bottom: 30px; }
-h2 { color: #222; margin: 20px 0 10px 0; }
-.button { 
-    padding: 15px 30px; 
-    margin: 10px; 
-    font-size:18px; 
-    border:none; 
-    border-radius:8px; 
-    cursor:pointer;
-    min-width: 100px;
-}
-.on { background-color: #4CAF50; color:white; }
-.off { background-color: #f44336; color:white; }
-.button:hover { opacity:0.8; }
+body { display:flex; justify-content:center; align-items:center; height:100vh; background:#f0f0f0; font-family:Arial; }
+.container { background:white; padding:30px; border-radius:15px; text-align:center; }
+button { width:100px; height:40px; margin:5px; border:none; border-radius:10px; font-size:16px; cursor:pointer; }
+.on { background:green; color:white; } .off { background:red; color:white; }
 </style>
-<script>
-function toggleRelay(id, state){
-    fetch('/relay', {
-        method: 'POST',
-        body: 'relay=' + id + '&state=' + state
-    }).then(()=> {
-        document.getElementById('r'+id+'_on').style.backgroundColor = state ? '#4CAF50' : '#ddd';
-        document.getElementById('r'+id+'_off').style.backgroundColor = state ? '#ddd' : '#f44336';
-    });
-}
-</script>
 </head>
 <body>
 <div class="container">
-<h1>ESP32 Relay Control</h1>
-
-<div>
-    <h2>Relay 1</h2>
-    <button id="r0_on" class="button on" onclick="toggleRelay(0,1)">ON</button>
-    <button id="r0_off" class="button off" onclick="toggleRelay(0,0)">OFF</button>
-</div>
-<div>
-    <h2>Relay 2</h2>
-    <button id="r1_on" class="button on" onclick="toggleRelay(1,1)">ON</button>
-    <button id="r1_off" class="button off" onclick="toggleRelay(1,0)">OFF</button>
-</div>
-<div>
-    <h2>Relay 3</h2>
-    <button id="r2_on" class="button on" onclick="toggleRelay(2,1)">ON</button>
-    <button id="r2_off" class="button off" onclick="toggleRelay(2,0)">OFF</button>
-</div>
-<div>
-    <h2>Relay 4</h2>
-    <button id="r3_on" class="button on" onclick="toggleRelay(3,1)">ON</button>
-    <button id="r3_off" class="button off" onclick="toggleRelay(3,0)">OFF</button>
-</div>
+<h2>ESP32 Relays</h2>
+<div>Relay 1 <button class="on" onclick="fetch('/relay/1/on')">ON</button><button class="off" onclick="fetch('/relay/1/off')">OFF</button></div>
+<div>Relay 2 <button class="on" onclick="fetch('/relay/2/on')">ON</button><button class="off" onclick="fetch('/relay/2/off')">OFF</button></div>
+<div>Relay 3 <button class="on" onclick="fetch('/relay/3/on')">ON</button><button class="off" onclick="fetch('/relay/3/off')">OFF</button></div>
+<div>Relay 4 <button class="on" onclick="fetch('/relay/4/on')">ON</button><button class="off" onclick="fetch('/relay/4/off')">OFF</button></div>
 </div>
 </body>
 </html>
 )rawliteral";
 
-    httpd_resp_send(req, resp, HTTPD_RESP_USE_STRLEN);
+// Root page handler
+static esp_err_t root_get_handler(httpd_req_t *req) {
+    httpd_resp_send(req, HTML_PAGE, strlen(HTML_PAGE));
+    return ESP_OK;
+}
+
+// Relay handler
+static esp_err_t relay_handler(httpd_req_t *req) {
+    const char* path = req->uri; // e.g., /relay/1/on
+    int relay_id = path[7] - '0'; // get relay number
+    bool state = (strcmp(&path[9], "on") == 0);
+
+    // If RelayController::set is static
+    RelayController::set(relay_id, state);
+
+    // If RelayController::set is non-static, use:
+    // static RelayController relay;
+    // relay.set(relay_id, state);
+
+    httpd_resp_send(req, "OK", 2);
     return ESP_OK;
 }
 
 void WebServer::init() {
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
     httpd_handle_t server = nullptr;
-    httpd_start(&server, &config);
 
-    httpd_uri_t root_uri = {
-        .uri       = "/",
-        .method    = HTTP_GET,
-        .handler   = root_get_handler,
-        .user_ctx  = nullptr
-    };
-    httpd_register_uri_handler(server, &root_uri);
+    if (httpd_start(&server, &config) == ESP_OK) {
+        // Root page
+        static httpd_uri_t root = { "/", HTTP_GET, root_get_handler, nullptr };
+        httpd_register_uri_handler(server, &root);
 
-    httpd_uri_t relay_uri = {
-        .uri       = "/relay",
-        .method    = HTTP_POST,
-        .handler   = relay_post_handler,
-        .user_ctx  = nullptr
-    };
-    httpd_register_uri_handler(server, &relay_uri);
+        // Relay URIs
+        for (int i = 1; i <= 4; i++) {
+            // ON URI
+            static char path_on[16];
+            snprintf(path_on, sizeof(path_on), "/relay/%d/on", i);
+            static httpd_uri_t uri_on;
+            uri_on.uri = path_on;
+            uri_on.method = HTTP_GET;
+            uri_on.handler = relay_handler;
+            uri_on.user_ctx = nullptr;
+            httpd_register_uri_handler(server, &uri_on);
 
-    ESP_LOGI(TAG, "Web server started");
+            // OFF URI
+            static char path_off[16];
+            snprintf(path_off, sizeof(path_off), "/relay/%d/off", i);
+            static httpd_uri_t uri_off;
+            uri_off.uri = path_off;
+            uri_off.method = HTTP_GET;
+            uri_off.handler = relay_handler;
+            uri_off.user_ctx = nullptr;
+            httpd_register_uri_handler(server, &uri_off);
+        }
+
+        ESP_LOGI(TAG, "HTTP Server started");
+    }
 }
