@@ -1,0 +1,43 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "/home/chandrasekar/Project/home_automation/build/CMakeFiles/bootloader"
+		},
+		{
+			"file" : "/home/chandrasekar/Project/home_automation/build/CMakeFiles/bootloader.rule"
+		},
+		{
+			"file" : "/home/chandrasekar/Project/home_automation/build/CMakeFiles/bootloader-complete.rule"
+		},
+		{
+			"file" : "/home/chandrasekar/Project/home_automation/build/bootloader-prefix/src/bootloader-stamp/bootloader-build.rule"
+		},
+		{
+			"file" : "/home/chandrasekar/Project/home_automation/build/bootloader-prefix/src/bootloader-stamp/bootloader-configure.rule"
+		},
+		{
+			"file" : "/home/chandrasekar/Project/home_automation/build/bootloader-prefix/src/bootloader-stamp/bootloader-download.rule"
+		},
+		{
+			"file" : "/home/chandrasekar/Project/home_automation/build/bootloader-prefix/src/bootloader-stamp/bootloader-install.rule"
+		},
+		{
+			"file" : "/home/chandrasekar/Project/home_automation/build/bootloader-prefix/src/bootloader-stamp/bootloader-mkdir.rule"
+		},
+		{
+			"file" : "/home/chandrasekar/Project/home_automation/build/bootloader-prefix/src/bootloader-stamp/bootloader-patch.rule"
+		},
+		{
+			"file" : "/home/chandrasekar/Project/home_automation/build/bootloader-prefix/src/bootloader-stamp/bootloader-update.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"bootloader"
+		],
+		"name" : "bootloader"
+	}
+}

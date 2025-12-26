@@ -1,0 +1,5 @@
+idf_component_register(
+    SRCS "app_main.cpp"
+    INCLUDE_DIRS "."
+    PRIV_REQUIRES web_server relay_controller wifi_manager
+)
