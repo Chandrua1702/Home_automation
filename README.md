@@ -122,7 +122,18 @@ idf.py menuconfig
 7. BUILD PROJECT
 ----------------------------------------------------
 
+idf.py build  
+or 
+if getting an error,try this commands :
+idf.py fullclean
+idf.py reconfigure
 idf.py build
+or 
+rm -rf build
+rm -f sdkconfig sdkconfig.old
+idf.py reconfigure
+idf.py build
+
 
 If build fails:
 - Check ESP-IDF is exported
@@ -191,3 +202,4 @@ to use and develop further.
 ====================================================
 END OF SETUP FILE
 ====================================================
+
