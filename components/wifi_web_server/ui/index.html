@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Santrow Network Technologies</title>
+<style>
+:root {
+  --bg: #f5f6fa;
+  --card: #ffffff;
+  --border: #dcdde1;
+  --primary: #4da3ff;
+  --success: #2ecc71;
+  --danger: #ff5c5c;
+  --warn: #f1c40f;
+  --text: #2f3640;
+  --input-bg: #f1f2f6;
+  --signal-strong: #2ecc71;
+  --signal-medium: #f1c40f;
+  --signal-weak: #ff5c5c;
+}
+
+* { box-sizing: border-box; font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+
+body {
+  background: var(--bg);
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 10px;
+  color: var(--text);
+}
+
+.container { width: 100%; max-width: 420px; }
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.header { text-align: center; margin-bottom: 20px; }
+.header h1 { margin: 0; font-size: 24px; color: var(--primary); }
+.header p { margin: 4px 0 0 0; font-size: 14px; color: var(--text); }
+
+.status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  font-weight: 600;
+  font-size: 14px;
+}
+.status.connected { background: #e2f7e2; color: var(--success); }
+.status.disconnected { background: #ffe2e2; color: var(--danger); }
+.status.checking { background: #fff6e2; color: var(--warn); }
+
+input, select {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 12px;
+  font-size: 15px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--input-bg);
+}
+
+.input-group { position: relative; }
+.show-password {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+}
+
+button {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  margin-bottom: 10px;
+  transition: all 0.2s ease;
+}
+button.primary { background-color: var(--success); color: white; }
+button.primary:hover { opacity: 0.9; }
+button.secondary { background-color: var(--danger); color: white; }
+button.neutral {
+  background-color: #f1f2f6;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 50px;
+}
+
+.scan-icon {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--text);
+  text-align: center;
+  line-height: 16px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.footer {
+  text-align: center;
+  font-size: 12px;
+  color: var(--text);
+  opacity: 0.6;
+  margin-top: 12px;
+}
+
+/* Wi-Fi signal bars inside dropdown */
+option.strong::after { content: " ▮▮▮"; color: var(--signal-strong); }
+option.medium::after { content: " ▮▮"; color: var(--signal-medium); }
+option.weak::after { content: " ▮"; color: var(--signal-weak); }
+
+/* Connecting animation */
+@keyframes dots {
+  0% { content: "…"; }
+  33% { content: "…."; }
+  66% { content: "….."; }
+  100% { content: "…"; }
+}
+.connecting::after {
+  content: "…";
+  animation: dots 1s steps(4, end) infinite;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="card">
+    <div class="header">
+      <h1>SANTROW NETWORK</h1>
+      <p>Professional IoT Device Setup</p>
+    </div>
+
+    <div id="wifiStatus" class="status checking">Checking Wi-Fi…</div>
+    <div id="internetStatus" class="status checking">Checking Internet…</div>
+
+    <button class="neutral" onclick="scan()">
+      <span class="scan-icon">🔍</span> Scan Wi-Fi Networks
+    </button>
+
+    <select id="ssid">
+      <option value="">Select Wi-Fi</option>
+    </select>
+
+    <div class="input-group">
+      <input id="password" type="password" placeholder="Wi-Fi Password">
+      <label class="show-password">
+        <input type="checkbox" id="showPassword" onclick="togglePassword()"> Show
+      </label>
+    </div>
+
+    <button class="primary" onclick="connect()">Connect</button>
+    <button class="secondary" onclick="disconnect()">Disconnect</button>
+
+    <div class="footer">
+      Secure local configuration • Santrow Tech 2026
+    </div>
+  </div>
+</div>
+
+<script>
+function setStatus(id, text, cls) {
+  const el = document.getElementById(id);
+  el.className = 'status ' + cls;
+  el.innerText = text;
+}
+
+function scan() {
+  setStatus("wifiStatus", "Scanning networks…", "checking connecting");
+  fetch('/scan_wifi')
+    .then(r => r.json())
+    .then(list => {
+      const sel = document.getElementById('ssid');
+      sel.innerHTML = '<option value="">Select Wi-Fi</option>';
+      list.forEach(ap => {
+        const opt = document.createElement('option');
+        opt.value = ap.ssid;
+        opt.text = ap.ssid + ` (${ap.rssi} dBm)`;
+        if (ap.rssi > -60) opt.className = "strong";
+        else if (ap.rssi > -75) opt.className = "medium";
+        else opt.className = "weak";
+        sel.appendChild(opt);
+      });
+      setStatus("wifiStatus", "Select a network", "checking");
+    });
+}
+
+function connect() {
+  const ssid = document.getElementById('ssid').value;
+  const password = document.getElementById('password').value;
+  if (!ssid) return alert("Please select Wi-Fi");
+
+  setStatus("wifiStatus", "Connecting to " + ssid, "checking connecting");
+
+  fetch('/connect_psk', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ ssid, password })
+  }).then(r => r.json())
+    .then(res => {
+      if(res.status === "success") {
+        setStatus("wifiStatus", "Wi-Fi Connected ✔", "connected");
+      } else {
+        setStatus("wifiStatus", "Invalid Wi-Fi password ✖", "disconnected");
+      }
+    }).catch(() => {
+      setStatus("wifiStatus", "Connection Error ✖", "disconnected");
+    });
+}
+
+function disconnect() {
+  fetch('/disconnect', { method: 'POST' });
+  setStatus("wifiStatus", "Disconnected", "disconnected");
+  setStatus("internetStatus", "No Internet", "disconnected");
+}
+
+function updateWifiStatus() {
+  fetch('/wifi_status')
+    .then(r => r.json())
+    .then(s => {
+      if (s.status === "connected") setStatus("wifiStatus", "Wi-Fi Connected ✔", "connected");
+      else setStatus("wifiStatus", "Wi-Fi Not Connected ✖", "disconnected");
+    });
+}
+
+function checkInternet() {
+  fetch('/api/internet')
+    .then(r => r.json())
+    .then(d => {
+      if(d.internet) setStatus("internetStatus", "🌍 Internet Available", "connected");
+      else setStatus("internetStatus", "⚠️ No Internet", "disconnected");
+    });
+}
+
+function togglePassword() {
+  const pw = document.getElementById("password");
+  pw.type = pw.type === "password" ? "text" : "password";
+}
+
+// Enter key triggers connect
+document.getElementById("password").addEventListener("keypress", e => {
+  if(e.key === "Enter") connect();
+});
+
+setInterval(updateWifiStatus, 5000);
+setInterval(checkInternet, 5000);
+updateWifiStatus();
+checkInternet();
+</script>
+</body>
+</html>
