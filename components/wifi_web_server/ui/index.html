@@ -1,273 +1,713 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Santrow Network Technologies</title>
+<meta charset="UTF-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover"
+/>
+<title>Santrow Networks • IoT Device Setup</title>
 <style>
-:root {
-  --bg: #f5f6fa;
-  --card: #ffffff;
-  --border: #dcdde1;
-  --primary: #4da3ff;
-  --success: #2ecc71;
-  --danger: #ff5c5c;
-  --warn: #f1c40f;
-  --text: #2f3640;
-  --input-bg: #f1f2f6;
-  --signal-strong: #2ecc71;
-  --signal-medium: #f1c40f;
-  --signal-weak: #ff5c5c;
-}
+  :root{
+    --bg:#0f172a; --card:#111827; --border:#1f2937;
+    --primary:#60a5fa; --success:#22c55e; --danger:#ef4444; --warn:#f59e0b;
+    --text:#e5e7eb; --muted:#94a3b8; --input-bg:#0b1220;
+    --shadow:0 4px 16px rgba(0,0,0,.25); --radius:14px;
 
-* { box-sizing: border-box; font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    /* Dropdown colors */
+    --ap-strong-bg: rgba(34,197,94,.16); --ap-strong-br: rgba(34,197,94,.4);
+    --ap-medium-bg: rgba(245,158,11,.16); --ap-medium-br: rgba(245,158,11,.4);
+    --ap-weak-bg: rgba(239,68,68,.16); --ap-weak-br: rgba(239,68,68,.4);
 
-body {
-  background: var(--bg);
-  margin: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  padding: 10px;
-  color: var(--text);
-}
+    /* Minimal password visuals */
+    --pw-bg: rgba(255,255,255,.04);
+    --pw-hover: rgba(255,255,255,.06);
+    --pw-focus: rgba(96,165,250,.3);
 
-.container { width: 100%; max-width: 420px; }
+    /* Modal */
+    --modal-bg: rgba(0,0,0,.55);
+    --modal-card:#0b1220;
+  }
 
-.card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
+  /* Base */
+  *{box-sizing:border-box}
+  html,body{
+    margin:0; height:100%;
+    background-color:var(--bg); color:var(--text);
+    font-family:"Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-text-size-adjust:100%; /* iOS font scaling */
+  }
+  /* Reduce motion (helps low power devices) */
+  @media (prefers-reduced-motion: reduce){ *{animation:none !important; transition:none !important} }
 
-.header { text-align: center; margin-bottom: 20px; }
-.header h1 { margin: 0; font-size: 24px; color: var(--primary); }
-.header p { margin: 4px 0 0 0; font-size: 14px; color: var(--text); }
+  .container{
+    min-height:100%;
+    display:flex; align-items:center; justify-content:center;
+    padding:16px;
+    padding-left: calc(16px + env(safe-area-inset-left));
+    padding-right: calc(16px + env(safe-area-inset-right));
+    padding-top: calc(16px + env(safe-area-inset-top));
+    padding-bottom: calc(16px + env(safe-area-inset-bottom));
+  }
+  .card{
+    width:100%; max-width:640px; background:var(--card);
+    border:1px solid var(--border); border-radius:var(--radius);
+    box-shadow:var(--shadow); overflow:hidden;
+  }
 
-.status {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 10px;
-  border-radius: 10px;
-  margin-bottom: 12px;
-  font-weight: 600;
-  font-size: 14px;
-}
-.status.connected { background: #e2f7e2; color: var(--success); }
-.status.disconnected { background: #ffe2e2; color: var(--danger); }
-.status.checking { background: #fff6e2; color: var(--warn); }
+  /* Header with techno image */
+  .header{
+    display:grid; grid-template-columns: 1fr 180px; gap:12px;
+    padding:18px 20px; border-bottom:1px solid var(--border);
+    align-items:center;
+  }
+  .brand{display:flex; align-items:center; gap:12px}
+  .logo{width:34px;height:34px;border-radius:8px;background:#22c55e; flex:0 0 34px}
+  .title{margin:0; font-size:20px; line-height:1.2}
+  .subtitle{margin:4px 0 0; color:var(--muted); font-size:12px; line-height:1.2}
+  .tech-illus{
+    width:100%; height:100px; border-radius:10px; border:1px solid var(--border);
+    background:#0b1220; display:flex; align-items:center; justify-content:center;
+    overflow:hidden;
+  }
+  .body{padding:18px}
 
-input, select {
-  width: 100%;
-  padding: 12px;
-  margin-bottom: 12px;
-  font-size: 15px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: var(--input-bg);
-}
+  /* Section titles */
+  .section-title{font-size:13px; color:#b7c4d8; margin:12px 0 6px; text-transform:uppercase; letter-spacing:.4px}
 
-.input-group { position: relative; }
-.show-password {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  cursor: pointer;
-  font-size: 13px;
-  display: flex;
-  align-items: center;
-}
+  /* Status blocks */
+  .status{
+    display:flex; align-items:center; gap:10px;
+    padding:12px; border-radius:10px; border:1px solid var(--border);
+    background:rgba(255,255,255,.03); margin-bottom:10px; font-size:14px; font-weight:600;
+  }
+  .status[data-state="connected"]{border-color:rgba(34,197,94,.35); background:rgba(34,197,94,.08); color:var(--success)}
+  .status[data-state="disconnected"]{border-color:rgba(239,68,68,.35); background:rgba(239,68,68,.08); color:var(--danger)}
+  .status[data-state="checking"]{border-color:rgba(245,158,11,.35); background:rgba(245,158,11,.08); color:var(--warn)}
+  .dot{width:8px;height:8px;border-radius:50%}
+  .status[data-state="connected"] .dot{background:var(--success)}
+  .status[data-state="disconnected"] .dot{background:var(--danger)}
+  .status[data-state="checking"] .dot{background:var(--warn)}
+  .text{flex:1}
 
-button {
-  width: 100%;
-  padding: 12px;
-  border-radius: 8px;
-  border: none;
-  font-weight: 600;
-  font-size: 15px;
-  cursor: pointer;
-  margin-bottom: 10px;
-  transition: all 0.2s ease;
-}
-button.primary { background-color: var(--success); color: white; }
-button.primary:hover { opacity: 0.9; }
-button.secondary { background-color: var(--danger); color: white; }
-button.neutral {
-  background-color: #f1f2f6;
-  color: var(--text);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  border-radius: 50px;
-}
+  /* Buttons (44px+ tap targets) */
+  .btn{
+    width:100%; padding:14px; border-radius:12px; border:1px solid transparent;
+    font-weight:700; cursor:pointer; margin-top:10px; font-size:16px; line-height:1.2;
+    min-height:48px;
+  }
+  .btn.primary{background:#22c55e; color:#06210f}
+  .btn.primary[disabled]{opacity:.6; cursor:not-allowed}
+  .btn.secondary{background:#ef4444; color:#2a0b0b}
+  .btn.neutral{background:#1f2937; color:#e5e7eb; border-color:#374151}
 
-.scan-icon {
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  border: 2px solid var(--text);
-  text-align: center;
-  line-height: 16px;
-  font-size: 12px;
-  font-weight: bold;
-}
+  .footer{padding:12px; text-align:center; font-size:11px; color:var(--muted); border-top:1px solid var(--border)}
+  :focus-visible{outline:2px solid var(--primary); outline-offset:2px; border-radius:6px}
 
-.footer {
-  text-align: center;
-  font-size: 12px;
-  color: var(--text);
-  opacity: 0.6;
-  margin-top: 12px;
-}
+  /* SSID dropdown (mobile-friendly) */
+  .field{position:relative; border:1px solid var(--border); border-radius:10px; background:var(--input-bg); display:flex; align-items:center}
+  .suffix{padding-right:10px; display:flex; align-items:center; gap:8px; color:var(--muted)}
+  .dropdown{ position:relative; flex:1; display:flex; width:100%; }
+  .dropdown-btn{
+    width:100%; text-align:left; background:transparent; border:0; color:var(--text);
+    padding:14px; cursor:pointer; font-size:16px; line-height:1.2; min-height:48px;
+  }
+  .dropdown-btn::after{ content:"▾"; float:right; color:var(--muted) }
+  .dropdown-list{
+    position:absolute; top:100%; left:0; right:0; z-index:10;
+    background:var(--card); border:1px solid var(--border);
+    border-radius:10px; margin-top:6px; padding:6px; list-style:none;
+    max-height:50vh; overflow:auto; box-shadow:var(--shadow); display:none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .dropdown[aria-expanded="true"] .dropdown-list{ display:block }
+  .ap-item{
+    display:flex; align-items:center; gap:10px; padding:12px;
+    border:1px solid var(--border); border-radius:8px; margin:6px 0; cursor:pointer;
+    font-size:16px; line-height:1.2;
+  }
+  .ap-item .badge{ width:6px; height:100%; min-height:22px; border-radius:3px }
+  .ap-item .ssid{ flex:1; font-weight:600; font-size:15px }
+  .ap-item .meta{ font-size:12px; color:var(--muted) }
+  .ap-strong{ background:var(--ap-strong-bg); border-color:var(--ap-strong-br) }
+  .ap-strong .badge{ background:var(--success) }
+  .ap-medium{ background:var(--ap-medium-bg); border-color:var(--ap-medium-br) }
+  .ap-medium .badge{ background:var(--warn) }
+  .ap-weak{ background:var(--ap-weak-bg); border-color:var(--ap-weak-br) }
+  .ap-weak .badge{ background:var(--danger) }
+  .ap-item[aria-selected="true"]{ outline:2px solid var(--primary) }
 
-/* Wi-Fi signal bars inside dropdown */
-option.strong::after { content: " ▮▮▮"; color: var(--signal-strong); }
-option.medium::after { content: " ▮▮"; color: var(--signal-medium); }
-option.weak::after { content: " ▮"; color: var(--signal-weak); }
+  /* Clean password field (mobile friendly) */
+  .pw-wrap{ position:relative; margin-top:12px; }
+  .pw-container{
+    position:relative; border-radius:999px; padding:14px 80px 14px 16px;
+    background:var(--pw-bg); border:1px solid var(--border); display:flex; align-items:center;
+    transition: background .1s ease, box-shadow .1s ease, border-color .1s ease;
+  }
+  .pw-container:hover{ background:var(--pw-hover) }
+  .pw-container:focus-within{ box-shadow:0 0 0 3px var(--pw-focus); border-color:#36598f }
+  .pw-input{
+    width:100%; border:0; outline:0; background:transparent; color:var(--text);
+    font-size:16px; line-height:1.4; /* 16px prevents iOS zoom */
+  }
+  .pw-icons{
+    position:absolute; right:6px; top:50%; transform:translateY(-50%);
+    display:flex; gap:6px;
+  }
+  .icon-btn{
+    appearance:none; border:0; background:transparent; color:var(--muted);
+    cursor:pointer; padding:10px; border-radius:10px; font-size:16px; min-width:44px; min-height:44px;
+  }
+  .icon-btn:active{ background:rgba(255,255,255,.06); color:#cbd5e1 }
 
-/* Connecting animation */
-@keyframes dots {
-  0% { content: "…"; }
-  33% { content: "…."; }
-  66% { content: "….."; }
-  100% { content: "…"; }
-}
-.connecting::after {
-  content: "…";
-  animation: dots 1s steps(4, end) infinite;
-}
+  /* Floating label */
+  .pw-label{
+    position:absolute; left:18px; top:50%; transform:translateY(-50%);
+    color:#98a4b7; pointer-events:none; transition:all .12s ease; font-size:14px
+  }
+  .pw-container.filled + .pw-label,
+  .pw-container:focus-within + .pw-label{
+    top:-8px; transform:none; padding:0 6px; font-size:12px; background:var(--card); border-radius:6px; color:#b6c3d8; border:1px solid var(--border)
+  }
+
+  /* Modal */
+  .modal{ position:fixed; inset:0; background:var(--modal-bg); display:none; align-items:center; justify-content:center; z-index:1000; }
+  .modal.open{ display:flex; }
+  .modal-card{
+    width:min(100vw,640px); background:var(--modal-card); border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow); padding:12px;
+    max-height:100vh; display:flex; flex-direction:column; gap:8px;
+    margin:0 0 env(safe-area-inset-bottom) 0;
+  }
+  .modal-header{ display:flex; align-items:center; justify-content:space-between; }
+  .modal-title{ font-weight:700 }
+  .modal-body{ display:flex; flex-direction:column; gap:10px; overflow:auto }
+  video#qrVideo{
+    width:100%; height:auto; max-height:60vh; border-radius:10px; border:1px solid var(--border); background:#000; object-fit:cover;
+  }
+  canvas#qrCanvas{ display:none }
+  .hint{ color:var(--muted); font-size:12px; margin-top:6px }
+
+  /* ---------- Responsive tweaks ---------- */
+  @media (max-width: 720px){
+    .card{ border-radius:0 }
+  }
+  @media (max-width: 640px){
+    .header{ grid-template-columns: 1fr; gap:10px }
+    .tech-illus{ height:84px }
+    .body{ padding:14px }
+    .title{ font-size:19px }
+    .subtitle{ font-size:12px }
+    .dropdown-list{ max-height:55vh }
+  }
+  @media (max-width: 420px){
+    .dropdown-btn{ font-size:15px; padding:12px }
+    .ap-item{ padding:10px }
+    .btn{ padding:12px; min-height:46px; font-size:15px }
+    .pw-container{ padding:12px 76px 12px 14px }
+    .icon-btn{ min-width:40px; min-height:40px; padding:8px; font-size:15px }
+    .tech-illus{ height:72px }
+  }
 </style>
 </head>
 <body>
 <div class="container">
-  <div class="card">
+  <div class="card" role="region" aria-label="Santrow Wi‑Fi setup">
     <div class="header">
-      <h1>SANTROW NETWORK</h1>
-      <p>Professional IoT Device Setup</p>
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h1 class="title">SANTROW NETWORKS</h1>
+          <p class="subtitle">Professional IoT Device Setup</p>
+        </div>
+      </div>
+      <!-- Techno SVG illustration -->
+      <div class="tech-illus" aria-hidden="true">
+        <svg viewBox="0 0 320 80" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="g1" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stop-color="#0ea5e9"/>
+              <stop offset="50%" stop-color="#60a5fa"/>
+              <stop offset="100%" stop-color="#22c55e"/>
+            </linearGradient>
+          </defs>
+          <path d="M10 20 H100 V40 H160 V20 H230 V50 H300" stroke="url(#g1)" stroke-width="2" fill="none" opacity="0.9"/>
+          <path d="M10 60 H60 V30 H120 V60 H200 V30 H260 V60 H310" stroke="url(#g1)" stroke-width="2" fill="none" opacity="0.6"/>
+          <circle cx="100" cy="20" r="3" fill="#22c55e"/>
+          <circle cx="160" cy="20" r="3" fill="#0ea5e9"/>
+          <circle cx="230" cy="50" r="3" fill="#60a5fa"/>
+          <circle cx="60" cy="30" r="3" fill="#60a5fa"/>
+          <circle cx="120" cy="60" r="3" fill="#22c55e"/>
+          <circle cx="200" cy="30" r="3" fill="#0ea5e9"/>
+          <circle cx="260" cy="60" r="3" fill="#22c55e"/>
+        </svg>
+      </div>
     </div>
 
-    <div id="wifiStatus" class="status checking">Checking Wi-Fi…</div>
-    <div id="internetStatus" class="status checking">Checking Internet…</div>
+    <div class="body">
+      <div class="section-title">Status</div>
+      <div id="wifiStatus" class="status" data-state="checking" aria-live="polite">
+        <span class="dot" aria-hidden="true"></span>
+        <span class="text">Checking Wi‑Fi…</span>
+      </div>
+      <div id="internetStatus" class="status" data-state="checking" aria-live="polite">
+        <span class="dot" aria-hidden="true"></span>
+        <span class="text">Checking Internet…</span>
+      </div>
 
-    <button class="neutral" onclick="scan()">
-      <span class="scan-icon">🔍</span> Scan Wi-Fi Networks
-    </button>
+      <div class="section-title">Network</div>
+      <button id="scanBtn" class="btn neutral" type="button">🔍 Scan Wi‑Fi Networks</button>
 
-    <select id="ssid">
-      <option value="">Select Wi-Fi</option>
-    </select>
+      <div style="margin-top:12px;">
+        <label for="ssidButton">Wi‑Fi Network</label>
+        <div class="field">
+          <div id="ssidDropdown" class="dropdown" role="combobox" aria-expanded="false" aria-haspopup="listbox" aria-controls="ssidList">
+            <button id="ssidButton" class="dropdown-btn" type="button">Select Wi‑Fi</button>
+            <ul id="ssidList" class="dropdown-list" role="listbox" tabindex="-1" aria-label="Wi‑Fi networks"></ul>
+          </div>
+          <input type="hidden" id="ssid" value="">
+          <div class="suffix" aria-hidden="true"><span id="signalText">—</span></div>
+        </div>
+      </div>
 
-    <div class="input-group">
-      <input id="password" type="password" placeholder="Wi-Fi Password">
-      <label class="show-password">
-        <input type="checkbox" id="showPassword" onclick="togglePassword()"> Show
-      </label>
+      <div class="section-title">Credentials</div>
+      <!-- Password (clean) -->
+      <div class="pw-wrap">
+        <div id="pwBox" class="pw-container">
+          <input
+            id="password"
+            class="pw-input"
+            type="password"
+            placeholder=" "
+            autocomplete="new-password"
+            autocapitalize="off"
+            spellcheck="false"
+            inputmode="text"
+            aria-describedby="pwHelp"
+          />
+          <div class="pw-icons">
+            <button id="qrScanBtn" class="icon-btn" type="button" aria-label="Scan QR code" title="Scan Wi‑Fi QR">� QR</button>
+            <button id="togglePw" class="icon-btn" type="button" aria-label="Show password" title="Show password">👁️</button>
+          </div>
+        </div>
+        <label for="password" class="pw-label">Wi‑Fi Password</label>
+        <div id="pwHelp" class="hint">Press <strong>Enter</strong> to connect, or use the <strong>Connect</strong> button.</div>
+      </div>
+
+      <div class="section-title">Actions</div>
+      <button id="connectBtn" class="btn primary" type="button">Connect</button>
+      <button id="disconnectBtn" class="btn secondary" type="button">Disconnect</button>
     </div>
 
-    <button class="primary" onclick="connect()">Connect</button>
-    <button class="secondary" onclick="disconnect()">Disconnect</button>
+    <div class="footer">Secure local configuration • Santrow Networks 2026</div>
+  </div>
+</div>
 
-    <div class="footer">
-      Secure local configuration • Santrow Tech 2026
+<!-- Scanner Modal -->
+<div id="scannerModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="scannerTitle">
+  <div class="modal-card">
+    <div class="modal-header">
+      <span id="scannerTitle" class="modal-title">Scan Wi‑Fi QR Code</span>
+      <button id="scannerClose" class="icon-btn" aria-label="Close">✖</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
+        <button id="scannerStart" class="btn neutral" type="button">📷 Start Camera</button>
+        <button id="scannerStop" class="btn neutral" type="button" disabled>⏹️ Stop</button>
+      </div>
+      <video id="qrVideo" playsinline muted></video>
+      <canvas id="qrCanvas"></canvas>
+      <div style="display:flex; align-items:center; gap:8px">
+        <input id="qrFile" type="file" accept="image/*" />
+        <span class="hint">Or upload an image with the Wi‑Fi QR</span>
+      </div>
+      <div style="display:flex; gap:8px; margin-top:8px">
+        <button id="scannerUse" class="btn primary" type="button" disabled>Use Scanned Data</button>
+      </div>
+      <div id="scannerMsg" class="hint">Format: WIFI:T:WPA;S:SSID;P:password;H:false;;</div>
     </div>
   </div>
 </div>
 
 <script>
-function setStatus(id, text, cls) {
-  const el = document.getElementById(id);
-  el.className = 'status ' + cls;
-  el.innerText = text;
-}
+  // ===== Behavior toggles =====
+  const AUTO_CONNECT_ON_ENTER = true;
+  const AUTO_CONNECT_AFTER_QR = true;
 
-function scan() {
-  setStatus("wifiStatus", "Scanning networks…", "checking connecting");
-  fetch('/scan_wifi')
-    .then(r => r.json())
-    .then(list => {
-      const sel = document.getElementById('ssid');
-      sel.innerHTML = '<option value="">Select Wi-Fi</option>';
-      list.forEach(ap => {
-        const opt = document.createElement('option');
-        opt.value = ap.ssid;
-        opt.text = ap.ssid + ` (${ap.rssi} dBm)`;
-        if (ap.rssi > -60) opt.className = "strong";
-        else if (ap.rssi > -75) opt.className = "medium";
-        else opt.className = "weak";
-        sel.appendChild(opt);
-      });
-      setStatus("wifiStatus", "Select a network", "checking");
-    });
-}
+  // Helpers
+  const $ = (id)=>document.getElementById(id);
+  let wifiConnected = false;
 
-function connect() {
-  const ssid = document.getElementById('ssid').value;
-  const password = document.getElementById('password').value;
-  if (!ssid) return alert("Please select Wi-Fi");
-
-  setStatus("wifiStatus", "Connecting to " + ssid, "checking connecting");
-
-  fetch('/connect_psk', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({ ssid, password })
-  }).then(r => r.json())
-    .then(res => {
-      if(res.status === "success") {
-        setStatus("wifiStatus", "Wi-Fi Connected ✔", "connected");
-      } else {
-        setStatus("wifiStatus", "Invalid Wi-Fi password ✖", "disconnected");
+  function sanitize(text){ const d=document.createElement('div'); d.textContent=String(text??''); return d.textContent; }
+  function setStatus(id, msg, state){
+    const el = $(id);
+    el.dataset.state = state;
+    el.querySelector('.text').textContent = msg;
+  }
+  async function fetchJson(url, options={}, cfg={timeoutMs:6000, retries:1, backoffMs:600}){
+    for(let a=0; a<=cfg.retries; a++){
+      const ctrl = new AbortController(); const t = setTimeout(()=>ctrl.abort(), cfg.timeoutMs);
+      try{
+        const res = await fetch(url, {...options, signal: ctrl.signal});
+        clearTimeout(t);
+        if(!res.ok) throw new Error('HTTP '+res.status);
+        return await res.json();
+      }catch(err){
+        clearTimeout(t);
+        if(a === cfg.retries) throw err;
+        await new Promise(r=>setTimeout(r, cfg.backoffMs*(a+1)));
       }
-    }).catch(() => {
-      setStatus("wifiStatus", "Connection Error ✖", "disconnected");
+    }
+  }
+  async function confirmConnected(totalMs){
+    const start = Date.now();
+    while (Date.now() - start < totalMs){
+      try{
+        const s = await fetchJson('/wifi_status', {}, {timeoutMs:4000, retries:0});
+        if (s && s.status === 'connected'){ wifiConnected = true; return true; }
+        wifiConnected = false;
+      }catch(e){}
+      await new Promise(r=>setTimeout(r, 800));
+    }
+    return false;
+  }
+  async function updateWifiStatus(){
+    try{
+      const s = await fetchJson('/wifi_status', {}, {timeoutMs:6000, retries:1});
+      if (s && s.status === 'connected'){ wifiConnected = true; setStatus('wifiStatus','Wi‑Fi Connected ✔','connected'); }
+      else { wifiConnected = false; setStatus('wifiStatus','Wi‑Fi Not Connected ✖','disconnected'); setStatus('internetStatus','No Internet','disconnected'); }
+    }catch(e){ setStatus('wifiStatus','Wi‑Fi status unavailable','checking'); }
+  }
+  async function checkInternet(forceSpinner=false){
+    if(!wifiConnected){ setStatus('internetStatus','No Internet','disconnected'); return; }
+    if(forceSpinner) setStatus('internetStatus','Checking Internet…','checking');
+    try{
+      const d = await fetchJson('/api/internet', {}, {timeoutMs:6000, retries:1});
+      if (d && d.internet && wifiConnected) setStatus('internetStatus','🌍 Internet Available','connected');
+      else setStatus('internetStatus','⚠️ No Internet','disconnected');
+    }catch(e){ setStatus('internetStatus','Internet check failed','checking'); }
+  }
+
+  // SSID dropdown
+  const dropdown = $('ssidDropdown'), ssidBtn = $('ssidButton'), ssidList = $('ssidList');
+  function rssiLevel(rssi){ if(typeof rssi!=='number') return 'weak'; if(rssi>-60) return 'strong'; if(rssi>-75) return 'medium'; return 'weak'; }
+  function renderList(items){
+    ssidList.innerHTML = '';
+    items.forEach(ap=>{
+      const li = document.createElement('li');
+      const level = rssiLevel(ap.rssi);
+      li.className = `ap-item ap-${level}`;
+      li.setAttribute('role','option');
+      li.setAttribute('data-ssid', ap.ssid);
+      li.setAttribute('data-rssi', ap.rssi);
+      li.setAttribute('tabindex','-1');
+      li.innerHTML = `
+        <span class="badge" aria-hidden="true"></span>
+        <span class="ssid">${sanitize(ap.ssid)}</span>
+        <span class="meta">${ap.rssi} dBm • ${level[0].toUpperCase()+level.slice(1)}</span>
+      `;
+      li.addEventListener('click', ()=>selectAp(li));
+      ssidList.appendChild(li);
     });
-}
+  }
+  function selectAp(li){
+    const ssidVal = li.getAttribute('data-ssid');
+    const rssiVal = Number(li.getAttribute('data-rssi'));
+    [...ssidList.children].forEach(el=>el.setAttribute('aria-selected','false'));
+    li.setAttribute('aria-selected','true');
+    ssidBtn.textContent = sanitize(ssidVal);
+    $('ssid').value = ssidVal;
+    $('signalText').textContent = (rssiVal>-60)?'Strong':(rssiVal>-75)?'Medium':'Weak';
+    dropdown.setAttribute('aria-expanded','false');
+    $('password').focus();
+  }
+  ssidBtn.addEventListener('click', ()=>{
+    const expanded = dropdown.getAttribute('aria-expanded')==='true';
+    dropdown.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+    if(!expanded){
+      ssidList.focus();
+      const first = ssidList.querySelector('.ap-item'); if(first) first.focus();
+    }
+  });
+  ssidList.addEventListener('keydown', (e)=>{
+    const items = [...ssidList.querySelectorAll('.ap-item')];
+    const idx = items.indexOf(document.activeElement);
+    if(e.key==='ArrowDown'){ e.preventDefault(); (items[Math.min(items.length-1, idx+1)]||items[0]).focus(); }
+    else if(e.key==='ArrowUp'){ e.preventDefault(); (items[Math.max(0, idx-1)]||items[items.length-1]).focus(); }
+    else if(e.key==='Enter'){ e.preventDefault(); if(document.activeElement.classList.contains('ap-item')) selectAp(document.activeElement); }
+    else if(e.key==='Escape'){ dropdown.setAttribute('aria-expanded','false'); ssidBtn.focus(); }
+  });
+  document.addEventListener('click', (e)=>{ if(!dropdown.contains(e.target)) dropdown.setAttribute('aria-expanded','false'); });
 
-function disconnect() {
-  fetch('/disconnect', { method: 'POST' });
-  setStatus("wifiStatus", "Disconnected", "disconnected");
-  setStatus("internetStatus", "No Internet", "disconnected");
-}
+  // Password field (clean)
+  const pwBox = $('pwBox'), pw = $('password'), togglePw = $('togglePw');
+  pw.addEventListener('input', ()=>{ pwBox.classList.toggle('filled', pw.value.length>0); });
+  pw.addEventListener('keydown', (e)=>{ if (AUTO_CONNECT_ON_ENTER && e.key==='Enter'){ e.preventDefault(); attemptConnect(); } });
+  togglePw.addEventListener('click', ()=>{
+    const isPw = pw.type==='password';
+    pw.type = isPw ? 'text' : 'password';
+    togglePw.setAttribute('aria-label', isPw ? 'Hide password' : 'Show password');
+    togglePw.textContent = isPw ? '🙈' : '👁️';
+  });
 
-function updateWifiStatus() {
-  fetch('/wifi_status')
-    .then(r => r.json())
-    .then(s => {
-      if (s.status === "connected") setStatus("wifiStatus", "Wi-Fi Connected ✔", "connected");
-      else setStatus("wifiStatus", "Wi-Fi Not Connected ✖", "disconnected");
+  // Connect / Disconnect
+  $('connectBtn').addEventListener('click', attemptConnect);
+  $('disconnectBtn').addEventListener('click', async ()=>{
+    const btn = $('disconnectBtn');
+    btn.disabled=true; btn.textContent='Disconnecting…';
+    try{ await fetchJson('/disconnect', {method:'POST'}, {timeoutMs:6000, retries:0}); }catch(e){}
+    wifiConnected=false; setStatus('wifiStatus','Disconnected','disconnected'); setStatus('internetStatus','No Internet','disconnected');
+    btn.disabled=false; btn.textContent='Disconnect';
+  });
+
+  async function attemptConnect(){
+    const ssid = $('ssid').value;
+    const password = pw.value;
+    if(!ssid){
+      $('ssidDropdown').setAttribute('aria-expanded','true');
+      $('ssidButton').focus();
+      return;
+    }
+    const btn = $('connectBtn');
+    btn.disabled = true; btn.textContent='Connecting…';
+    setStatus('wifiStatus',`Connecting to ${sanitize(ssid)}…`,'checking');
+
+    try{
+      const res = await fetchJson('/connect_psk', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ssid, password})
+      }, {timeoutMs:12000, retries:0});
+
+      if (res && res.status === 'invalid_password'){
+        wifiConnected = false;
+        setStatus('wifiStatus','Invalid Wi‑Fi password ✖','disconnected');
+        setStatus('internetStatus','No Internet','disconnected');
+      } else if (res && res.status === 'success'){
+        const ok = await confirmConnected(15000);
+        if (ok){
+          setStatus('wifiStatus','Wi‑Fi Connected ✔','connected');
+          await checkInternet(true);
+          clearPassword(password);
+        } else {
+          setStatus('wifiStatus','Still connecting…','checking');
+          const ok2 = await confirmConnected(10000);
+          if (ok2){
+            setStatus('wifiStatus','Wi‑Fi Connected ✔','connected');
+            await checkInternet(true);
+            clearPassword(password);
+          } else {
+            wifiConnected = false;
+            setStatus('wifiStatus','Unable to confirm connection','disconnected');
+            setStatus('internetStatus','No Internet','disconnected');
+          }
+        }
+      } else {
+        const ok = await confirmConnected(15000);
+        if (ok){
+          setStatus('wifiStatus','Wi‑Fi Connected ✔','connected');
+          await checkInternet(true);
+          clearPassword(password);
+        } else {
+          setStatus('wifiStatus','Connection taking longer than expected…','checking');
+        }
+      }
+    }catch(e){
+      wifiConnected = false;
+      setStatus('wifiStatus','Connection error ✖','disconnected');
+      setStatus('internetStatus','No Internet','disconnected');
+    }finally{
+      btn.disabled = false; btn.textContent='Connect';
+    }
+  }
+
+  function clearPassword(originalValue){
+    if (pw.type!=='password') pw.type='password';
+    pw.value=''; pw.blur();
+    pwBox.classList.remove('filled');
+    if (togglePw.textContent==='🙈'){ togglePw.textContent='👁️'; togglePw.setAttribute('aria-label','Show password'); }
+    (async ()=>{
+      try{
+        if (navigator.clipboard && document.hasFocus()){
+          const clip = await navigator.clipboard.readText();
+          if (clip && originalValue && clip===originalValue) await navigator.clipboard.writeText('');
+        }
+      }catch(e){}
+    })();
+  }
+
+  // Scan Wi‑Fi networks
+  $('scanBtn').addEventListener('click', async ()=>{
+    const btn = $('scanBtn');
+    btn.disabled=true; btn.textContent='Scanning…';
+    setStatus('wifiStatus','Scanning networks…','checking');
+    try{
+      const list = await fetchJson('/scan_wifi', {}, {timeoutMs:8000, retries:2, backoffMs:700});
+      const items = Array.isArray(list) ? list : [];
+      renderList(items);
+      $('ssidButton').textContent = 'Select Wi‑Fi';
+      $('ssid').value = '';
+      $('signalText').textContent = items.length ? ((items[0].rssi>-60)?'Strong':(items[0].rssi>-75)?'Medium':'Weak') : '—';
+      setStatus('wifiStatus','Select a network','checking');
+    }catch(e){
+      setStatus('wifiStatus','Scan failed','disconnected');
+    }finally{
+      btn.disabled=false; btn.textContent='🔍 Scan Wi‑Fi Networks';
+    }
+  });
+
+  // Polling
+  let poll;
+  function startPoll(){ stopPoll(); poll=setInterval(async()=>{ await updateWifiStatus(); await checkInternet(); }, 5000); }
+  function stopPoll(){ if(poll) clearInterval(poll); poll=null; }
+  document.addEventListener('visibilitychange', ()=>{ if(document.hidden) stopPoll(); else startPoll(); });
+
+  // Initial
+  updateWifiStatus(); checkInternet(true); startPoll();
+
+  // ===== QR Code Scanner =====
+  const scannerModal = $('scannerModal');
+  const qrScanBtn = $('qrScanBtn');
+  const scannerClose = $('scannerClose');
+  const scannerStart = $('scannerStart');
+  const scannerStop = $('scannerStop');
+  const scannerUse = $('scannerUse');
+  const qrVideo = $('qrVideo');
+  const qrCanvas = $('qrCanvas');
+  const qrFile = $('qrFile');
+  const scannerMsg = $('scannerMsg');
+
+  let stream = null;
+  let scanLoopTimer = null;
+  let lastQrText = null;
+  let barcodeDetector = null;
+
+  function openScanner(){ scannerModal.classList.add('open'); scannerUse.disabled=true; scannerMsg.textContent='Allow camera access and point to a Wi‑Fi QR code.'; }
+  function closeScanner(){ stopScanner(); scannerModal.classList.remove('open'); lastQrText=null; }
+  async function startScanner(){
+    scannerUse.disabled = true;
+    try{
+      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      qrVideo.srcObject = stream;
+      await qrVideo.play();
+      scannerStart.disabled = true; scannerStop.disabled = false;
+
+      if ('BarcodeDetector' in window){
+        try{ barcodeDetector = new BarcodeDetector({formats:['qr_code']}); }catch(e){ barcodeDetector = null; }
+      }
+      if (!barcodeDetector && !window.jsQR){ await loadJsQR(); }
+      startScanLoop();
+    }catch(e){
+      scannerMsg.textContent = 'Camera access failed. Try uploading a QR image below.';
+      scannerStart.disabled = false; scannerStop.disabled = true;
+    }
+  }
+  function stopScanner(){
+    if (scanLoopTimer){ cancelAnimationFrame(scanLoopTimer); scanLoopTimer = null; }
+    if (stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; }
+    qrVideo.srcObject = null;
+    scannerStart.disabled = false; scannerStop.disabled = true;
+  }
+  function startScanLoop(){
+    const loop = async ()=>{
+      if (!qrVideo.videoWidth) { scanLoopTimer = requestAnimationFrame(loop); return; }
+      let text = null;
+      try{
+        if (barcodeDetector){
+          const codes = await barcodeDetector.detect(qrVideo);
+          if (codes && codes.length){ text = codes[0].rawValue || codes[0].value || null; }
+        } else if (window.jsQR){
+          qrCanvas.width = qrVideo.videoWidth; qrCanvas.height = qrVideo.videoHeight;
+          const ctx = qrCanvas.getContext('2d'); ctx.drawImage(qrVideo, 0, 0, qrCanvas.width, qrCanvas.height);
+          const imageData = ctx.getImageData(0,0,qrCanvas.width, qrCanvas.height);
+          const result = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts:'dontInvert' });
+          if (result && result.data){ text = result.data; }
+        }
+      }catch(e){}
+      if (text){
+        lastQrText = text; scannerMsg.textContent = 'QR detected.'; scannerUse.disabled = false;
+        if (AUTO_CONNECT_AFTER_QR){ useQrDataAndMaybeConnect(); }
+      } else {
+        scannerUse.disabled = !lastQrText;
+      }
+      scanLoopTimer = requestAnimationFrame(loop);
+    };
+    scanLoopTimer = requestAnimationFrame(loop);
+  }
+  async function loadJsQR(){
+    return new Promise((resolve, reject)=>{
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js';
+      s.async = true; s.onload = ()=> resolve();
+      s.onerror = ()=> { scannerMsg.textContent = 'QR library failed to load; use image upload.'; reject(new Error('jsQR load failed')); };
+      document.head.appendChild(s);
     });
-}
+  }
+  function parseWifiQr(str){
+    // WIFI:T:WPA;S:MySSID;P:mypass;H:false;;
+    const raw = String(str||'').trim();
+    if (!raw.startsWith('WIFI:')) return null;
+    const body = raw.slice(5).replace(/\\;/g,'{SEMICOLON}').replace(/\\:/g,'{COLON}').replace(/\\\\/g,'{BS}');
+    const parts = body.split(';').filter(Boolean);
+    const out = { T:null, S:null, P:null, H:null };
+    for (const part of parts){
+      const [k,v] = part.split(':');
+      if (!k) continue;
+      const val = (v||'').replace(/{SEMICOLON}/g,';').replace(/{COLON}/g,':').replace(/{BS}/g,'\\');
+      if (k==='T') out.T = val;
+      else if (k==='S') out.S = val;
+      else if (k==='P') out.P = val;
+      else if (k==='H') out.H = (val==='true' || val==='TRUE');
+    }
+    return out;
+  }
+  function useQrDataAndMaybeConnect(){
+    if (!lastQrText) return;
+    const data = parseWifiQr(lastQrText);
+    if (!data || !data.S){ scannerMsg.textContent = 'Invalid Wi‑Fi QR format.'; return; }
+    $('ssid').value = data.S;
+    $('ssidButton').textContent = data.S;
+    pw.value = data.P || '';
+    pw.dispatchEvent(new Event('input'));
+    closeScanner();
+    if (AUTO_CONNECT_AFTER_QR) attemptConnect(); else pw.focus();
+  }
 
-function checkInternet() {
-  fetch('/api/internet')
-    .then(r => r.json())
-    .then(d => {
-      if(d.internet) setStatus("internetStatus", "🌍 Internet Available", "connected");
-      else setStatus("internetStatus", "⚠️ No Internet", "disconnected");
-    });
-}
+  // Modal bindings
+  $('qrScanBtn').addEventListener('click', openScanner);
+  $('scannerClose').addEventListener('click', closeScanner);
+  $('scannerStart').addEventListener('click', startScanner);
+  $('scannerStop').addEventListener('click', stopScanner);
+  $('scannerUse').addEventListener('click', useQrDataAndMaybeConnect);
 
-function togglePassword() {
-  const pw = document.getElementById("password");
-  pw.type = pw.type === "password" ? "text" : "password";
-}
-
-// Enter key triggers connect
-document.getElementById("password").addEventListener("keypress", e => {
-  if(e.key === "Enter") connect();
-});
-
-setInterval(updateWifiStatus, 5000);
-setInterval(checkInternet, 5000);
-updateWifiStatus();
-checkInternet();
+  // Image upload fallback
+  $('qrFile').addEventListener('change', async (e)=>{
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const img = new Image();
+    img.onload = async ()=>{
+      const c = $('qrCanvas'); c.width = img.width; c.height = img.height;
+      const ctx = c.getContext('2d'); ctx.drawImage(img,0,0);
+      let text = null;
+      if (window.jsQR){
+        const data = ctx.getImageData(0,0,c.width,c.height);
+        const res = jsQR(data.data, data.width, data.height, {inversionAttempts:'dontInvert'});
+        text = res && res.data;
+      } else {
+        try{
+          await loadJsQR();
+          const data = ctx.getImageData(0,0,c.width,c.height);
+          const res = jsQR(data.data, data.width, data.height, {inversionAttempts:'dontInvert'});
+          text = res && res.data;
+        }catch(e){ $('scannerMsg').textContent = 'Cannot decode without QR lib; use camera if available.'; }
+      }
+      if (text){ lastQrText = text; $('scannerMsg').textContent = 'QR decoded from image.'; $('scannerUse').disabled = false; if (AUTO_CONNECT_AFTER_QR) useQrDataAndMaybeConnect(); }
+      else { $('scannerMsg').textContent = 'No QR found in image.'; $('scannerUse').disabled = true; }
+    };
+    img.onerror = ()=>{ $('scannerMsg').textContent = 'Image load failed.'; };
+    img.src = URL.createObjectURL(file);
+  });
 </script>
 </body>
 </html>
