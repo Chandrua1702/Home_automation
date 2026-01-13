@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ESP32 Relay Control</title>
+<style>
+body { font-family: 'Segoe UI', sans-serif; background: #121212; color: #fff; text-align:center; padding: 20px;}
+h1 { color: #00bcd4; }
+button { 
+    font-size: 18px; 
+    margin: 10px; 
+    padding: 15px 25px; 
+    border: none; 
+    border-radius: 8px; 
+    cursor: pointer; 
+    transition: 0.3s; 
+}
+button.on { background-color: #4caf50; color: #fff;}
+button.off { background-color: #f44336; color: #fff;}
+button:hover { opacity: 0.8; }
+.card { 
+    display:inline-block; 
+    padding:20px; 
+    margin:15px; 
+    background: #1e1e1e; 
+    border-radius:12px; 
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+</style>
+</head>
+<body>
+<h1>ESP32 Relay Control</h1>
+
+<div class="card">
+    <h2>Relay 1</h2>
+    <button class="on" onclick="toggle(1,1)">ON</button>
+    <button class="off" onclick="toggle(1,0)">OFF</button>
+</div>
+
+<div class="card">
+    <h2>Relay 2</h2>
+    <button class="on" onclick="toggle(2,1)">ON</button>
+    <button class="off" onclick="toggle(2,0)">OFF</button>
+</div>
+
+<div class="card">
+    <h2>Relay 3</h2>
+    <button class="on" onclick="toggle(3,1)">ON</button>
+    <button class="off" onclick="toggle(3,0)">OFF</button>
+</div>
+
+<div class="card">
+    <h2>Relay 4</h2>
+    <button class="on" onclick="toggle(4,1)">ON</button>
+    <button class="off" onclick="toggle(4,0)">OFF</button>
+</div>
+
+<script>
+function toggle(id,state){
+    fetch(`/relay?id=${id}&state=${state}`)
+    .then(resp => console.log(`Relay ${id} set to ${state?"ON":"OFF"}`))
+    .catch(err => console.error(err));
+}
+</script>
+
+</body>
+</html>
