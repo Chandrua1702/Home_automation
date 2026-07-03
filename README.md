@@ -2,7 +2,7 @@
 ESP32-WROOM PROJECT SETUP GUIDE (FROM SCRATCH)
 ====================================================
 
-This document explains how to set up the ESP32-WROOM
+This is the  document explains how to set up the ESP32-WROOM
 home automation project on a NEW system after the
 code is already pushed to the repository.
 

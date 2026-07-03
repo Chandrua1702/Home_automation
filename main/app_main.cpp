@@ -5,7 +5,7 @@
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 
-//wifi world
+//wifi enable  world
 #include "freertos/task.h"
 
 static const char* TAG = "APP_MAIN";
